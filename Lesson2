@@ -1,0 +1,5641 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "5988a571",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01402,
+     "end_time": "2024-07-26T11:06:22.037575",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:22.023555",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Lecture 2: Data Preparation\n",
+    "\n",
+    "In this lesson you'll carry out some of the data cleaning steps required to prepare data for pretraining. In the video, Sung mentioned an Upstage tool called **Dataverse** which can help you with data cleaning. You can checkout the features of Dataverse at [this link](https://github.com/UpstageAI/dataverse)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "7b81bc9d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:22.066941Z",
+     "iopub.status.busy": "2024-07-26T11:06:22.066519Z",
+     "iopub.status.idle": "2024-07-26T11:06:22.080519Z",
+     "shell.execute_reply": "2024-07-26T11:06:22.079239Z"
+    },
+    "papermill": {
+     "duration": 0.032033,
+     "end_time": "2024-07-26T11:06:22.083167",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:22.051134",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import warnings\n",
+    "warnings.filterwarnings(\"ignore\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "60baf29c",
+   "metadata": {
+    "papermill": {
+     "duration": 0.012577,
+     "end_time": "2024-07-26T11:06:22.108915",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:22.096338",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 1. Sourcing datasets for pretraining\n",
+    "\n",
+    "In this section, you'll see two ways to source data for training:\n",
+    "1. Download an existing dataset from Hugging Face\n",
+    "2. Create a dataset of python scripts sourced from Github\n",
+    "\n",
+    "In both cases the result will be a Hugging Face `Dataset` object, part of the `Datasets` library. You can read more about the properties of Datasets and how to work with them on the [Hugging Face website](https://huggingface.co/docs/datasets/en/index).\n",
+    "\n",
+    "### Download data from Hugging face\n",
+    "\n",
+    "The dataset you download here is a subset of a much larger dataset called **Red Pajama**. The full, 1 trillion token dataset is available on Hugging Face at [this link](https://huggingface.co/datasets/togethercomputer/RedPajama-Data-1T)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "29b5d6fe",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:22.136577Z",
+     "iopub.status.busy": "2024-07-26T11:06:22.136134Z",
+     "iopub.status.idle": "2024-07-26T11:06:29.399914Z",
+     "shell.execute_reply": "2024-07-26T11:06:29.398808Z"
+    },
+    "papermill": {
+     "duration": 7.28071,
+     "end_time": "2024-07-26T11:06:29.402611",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:22.121901",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "dcc0e53b2de34371a715d233003b227d",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Downloading data:   0%|          | 0.00/150M [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "9890349a7b364dcf9d4ec15c6dde60e2",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Generating train split:   0%|          | 0/60000 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import datasets\n",
+    "pretraining_dataset = datasets.load_dataset(\n",
+    "    \"upstage/Pretraining_Dataset\",\n",
+    "    split=\"train\"\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "e82b6a63",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:29.433105Z",
+     "iopub.status.busy": "2024-07-26T11:06:29.431860Z",
+     "iopub.status.idle": "2024-07-26T11:06:29.438872Z",
+     "shell.execute_reply": "2024-07-26T11:06:29.437585Z"
+    },
+    "papermill": {
+     "duration": 0.024264,
+     "end_time": "2024-07-26T11:06:29.441451",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.417187",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Dataset({\n",
+      "    features: ['text', 'meta'],\n",
+      "    num_rows: 60000\n",
+      "})\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(pretraining_dataset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0de63e7e",
+   "metadata": {
+    "papermill": {
+     "duration": 0.013176,
+     "end_time": "2024-07-26T11:06:29.468848",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.455672",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Only work with the `text` column:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "45e30f03",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:29.497487Z",
+     "iopub.status.busy": "2024-07-26T11:06:29.497052Z",
+     "iopub.status.idle": "2024-07-26T11:06:29.507017Z",
+     "shell.execute_reply": "2024-07-26T11:06:29.505783Z"
+    },
+    "papermill": {
+     "duration": 0.027478,
+     "end_time": "2024-07-26T11:06:29.509743",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.482265",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "pretraining_dataset = pretraining_dataset.select_columns(\n",
+    "    [\"text\"]\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b4311795",
+   "metadata": {
+    "papermill": {
+     "duration": 0.013058,
+     "end_time": "2024-07-26T11:06:29.536720",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.523662",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Print a sample:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "ba80bb0c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:29.565171Z",
+     "iopub.status.busy": "2024-07-26T11:06:29.564750Z",
+     "iopub.status.idle": "2024-07-26T11:06:29.572581Z",
+     "shell.execute_reply": "2024-07-26T11:06:29.571425Z"
+    },
+    "papermill": {
+     "duration": 0.025204,
+     "end_time": "2024-07-26T11:06:29.575132",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.549928",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "In 1793 Zaman Shah, a grandson of Ahmad Shah Durrani, won a brief war of succession to become ruler of Afghanistan. The support of Painda Khan, chief of the Baraksai branch of the Durrani tribe, was decisive in his victory. In the next fifty year., the brothers of Zaman shah and the sons of Painda Khan were to dominate the affairs of Afghanistan. The Durrani tribe was very large with several branches and numerous clans. 1 Abmad Shah and his successors belonged to the Sadozai clan, but other clan\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(pretraining_dataset[0][\"text\"][:500])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b0515493",
+   "metadata": {
+    "papermill": {
+     "duration": 0.0138,
+     "end_time": "2024-07-26T11:06:29.602498",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.588698",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Compare pretraining and fine-tuning datasets\n",
+    "In the next cell, you'll download a fine-tuning dataset to contrast with the pretraining dataset you loaded above. You can read more about the Alpaca model and instruction tuning dataset [here](https://crfm.stanford.edu/2023/03/13/alpaca.html). "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "6f9e88d2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:29.632028Z",
+     "iopub.status.busy": "2024-07-26T11:06:29.631155Z",
+     "iopub.status.idle": "2024-07-26T11:06:36.341967Z",
+     "shell.execute_reply": "2024-07-26T11:06:36.340670Z"
+    },
+    "papermill": {
+     "duration": 6.728746,
+     "end_time": "2024-07-26T11:06:36.344893",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:29.616147",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "0d8dc8009a574ba2a37ab4ffdb58558f",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Downloading readme:   0%|          | 0.00/1.39k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "d884ea56f4c94e609bf4227bed87f3d5",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Downloading data:   0%|          | 0.00/43.4M [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "5e80b5421f6e437895d9f05804eb81e5",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Generating train split:   0%|          | 0/52002 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Dataset({\n",
+      "    features: ['instruction', 'input', 'output'],\n",
+      "    num_rows: 52002\n",
+      "})\n"
+     ]
+    }
+   ],
+   "source": [
+    "instruction_dataset = datasets.load_dataset(\n",
+    "    \"c-s-ale/alpaca-gpt4-data\",\n",
+    "    split=\"train\"\n",
+    ")\n",
+    "print(instruction_dataset)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "3053e666",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:36.376426Z",
+     "iopub.status.busy": "2024-07-26T11:06:36.375964Z",
+     "iopub.status.idle": "2024-07-26T11:06:36.384124Z",
+     "shell.execute_reply": "2024-07-26T11:06:36.382657Z"
+    },
+    "papermill": {
+     "duration": 0.02685,
+     "end_time": "2024-07-26T11:06:36.386884",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.360034",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Instruction: Give three tips for staying healthy.\n",
+      "Input: \n",
+      "Output: 1. Eat a balanced and nutritious diet: Make sure your meals are inclusive of a variety of fruits and vegetables, lean protein, whole grains, and healthy fats. This helps to provide your body with the essential nutrients to function at its best and can help prevent chronic diseases.\n",
+      "\n",
+      "2. Engage in regular physical activity: Exercise is crucial for maintaining strong bones, muscles, and cardiovascular health. Aim for at least 150 minutes of moderate aerobic exercise or 75 minutes of vigorous exercise each week.\n",
+      "\n",
+      "3. Get enough sleep: Getting enough quality sleep is crucial for physical and mental well-being. It helps to regulate mood, improve cognitive function, and supports healthy growth and immune function. Aim for 7-9 hours of sleep each night.\n"
+     ]
+    }
+   ],
+   "source": [
+    "i=0\n",
+    "print(\"Instruction: \" + instruction_dataset[i][\"instruction\"] \n",
+    "      + \"\\nInput: \" + instruction_dataset[i][\"input\"] \n",
+    "      + \"\\nOutput: \" + instruction_dataset[i][\"output\"])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1140de80",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014005,
+     "end_time": "2024-07-26T11:06:36.415384",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.401379",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Notice how in contrast to the pretraining data, which is just raw text, fine-tuning datasets are structured into question-answer pairs or instruction-response sets that can include additional input context if required. \n",
+    "\n",
+    "Moving forward, you'll only work with the unstructured pretraining dataset."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b86d7aed",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014024,
+     "end_time": "2024-07-26T11:06:36.443844",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.429820",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Scrape python code from Github\n",
+    "Here, you'll download a selection of python scripts from Github and then prepare them as a Hugging Face `Dataset` object to use in training. \n",
+    "\n",
+    "The same pattern here will work for preparing any text scraped from the web."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "dda97826",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:36.474527Z",
+     "iopub.status.busy": "2024-07-26T11:06:36.474100Z",
+     "iopub.status.idle": "2024-07-26T11:06:36.480194Z",
+     "shell.execute_reply": "2024-07-26T11:06:36.478745Z"
+    },
+    "papermill": {
+     "duration": 0.024551,
+     "end_time": "2024-07-26T11:06:36.482930",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.458379",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# Import some required package\n",
+    "import os\n",
+    "import requests\n",
+    "\n",
+    "#Path to directory to store python scripts\n",
+    "code_dir = \"/kaggle/working/\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "c93296dd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:36.513780Z",
+     "iopub.status.busy": "2024-07-26T11:06:36.513289Z",
+     "iopub.status.idle": "2024-07-26T11:06:36.520165Z",
+     "shell.execute_reply": "2024-07-26T11:06:36.518905Z"
+    },
+    "papermill": {
+     "duration": 0.025415,
+     "end_time": "2024-07-26T11:06:36.522867",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.497452",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "urls = [\n",
+    "    \"https://raw.githubusercontent.com/TheAlgorithms/Python/master/searches/double_linear_search_recursion.py\",\n",
+    "    \"https://raw.githubusercontent.com/KosingZhu/tensorflow/master/tensorflow/python/tools/module_util.py\",\n",
+    "    \"https://raw.githubusercontent.com/EricRemmerswaal/tensorflow/master/tensorflow/python/distribute/distribute_coordinator_context.py\",\n",
+    "    \"https://raw.githubusercontent.com/computationalartist/tensorflow/master/tensorflow/python/ops/numpy_ops/integration_test/benchmarks/numpy_mlp.py\",\n",
+    "    \"https://raw.githubusercontent.com/Van-an/tensorflow/master/tensorflow/python/distribute/coordinator/values.py\",\n",
+    "    \"https://raw.githubusercontent.com/nkgwer/tensorflow/master/tensorflow/lite/tools/visualize.py\",\n",
+    "    \"https://raw.githubusercontent.com/gitblazer/youtube-dl/master/youtube_dl/version.py\",\n",
+    "    \"https://raw.githubusercontent.com/Joshua-Barawa/My-Photos/master/venv/lib/python3.8/site-packages/django/contrib/messages/__init__.py\",\n",
+    "    \"https://raw.githubusercontent.com/PaliC/pytorch/master/test/fx/test_subgraph_rewriter.py\"\n",
+    "]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "18b77c01",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014135,
+     "end_time": "2024-07-26T11:06:36.551635",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.537500",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Retrieve the python scripts:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "504555ea",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:36.582419Z",
+     "iopub.status.busy": "2024-07-26T11:06:36.581958Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.175758Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.174672Z"
+    },
+    "papermill": {
+     "duration": 1.612454,
+     "end_time": "2024-07-26T11:06:38.178640",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:36.566186",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Working on url: https://raw.githubusercontent.com/TheAlgorithms/Python/master/searches/double_linear_search_recursion.py\n",
+      "Working on url: https://raw.githubusercontent.com/KosingZhu/tensorflow/master/tensorflow/python/tools/module_util.py\n",
+      "Working on url: https://raw.githubusercontent.com/EricRemmerswaal/tensorflow/master/tensorflow/python/distribute/distribute_coordinator_context.py\n",
+      "Working on url: https://raw.githubusercontent.com/computationalartist/tensorflow/master/tensorflow/python/ops/numpy_ops/integration_test/benchmarks/numpy_mlp.py\n",
+      "Working on url: https://raw.githubusercontent.com/Van-an/tensorflow/master/tensorflow/python/distribute/coordinator/values.py\n",
+      "Working on url: https://raw.githubusercontent.com/nkgwer/tensorflow/master/tensorflow/lite/tools/visualize.py\n",
+      "Working on url: https://raw.githubusercontent.com/gitblazer/youtube-dl/master/youtube_dl/version.py\n",
+      "Working on url: https://raw.githubusercontent.com/Joshua-Barawa/My-Photos/master/venv/lib/python3.8/site-packages/django/contrib/messages/__init__.py\n",
+      "Working on url: https://raw.githubusercontent.com/PaliC/pytorch/master/test/fx/test_subgraph_rewriter.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "for url in urls:\n",
+    "    print(f\"Working on url: {url}\")\n",
+    "    response = requests.get(url)\n",
+    "    file_name = os.path.basename(url)\n",
+    "    file_path = os.path.join(code_dir, file_name)\n",
+    "    \n",
+    "    with open(file_path, \"wb\") as file:\n",
+    "        file.write(response.content)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "c60fc47d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.211371Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.210934Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.217743Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.216604Z"
+    },
+    "papermill": {
+     "duration": 0.026799,
+     "end_time": "2024-07-26T11:06:38.220556",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.193757",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "numpy_mlp.py\n",
+      "__init__.py\n",
+      "version.py\n",
+      "module_util.py\n",
+      "values.py\n",
+      "__notebook__.ipynb\n",
+      "test_subgraph_rewriter.py\n",
+      "distribute_coordinator_context.py\n",
+      "visualize.py\n",
+      "double_linear_search_recursion.py\n"
+     ]
+    }
+   ],
+   "source": [
+    "files = os.listdir(code_dir)\n",
+    "for file in files:\n",
+    "    print(file)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e186c603",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014597,
+     "end_time": "2024-07-26T11:06:38.250154",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.235557",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Concatenate scripts into a list:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "03bfeefd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.281991Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.281594Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.289359Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.288255Z"
+    },
+    "papermill": {
+     "duration": 0.026835,
+     "end_time": "2024-07-26T11:06:38.291977",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.265142",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "\n",
+    "code_dataset = []\n",
+    "for file in os.listdir(code_dir):\n",
+    "    file_path = os.path.join(code_dir, file)\n",
+    "    if os.path.isfile(file_path):  # Sadece dosyalar üzerinde işlem yap\n",
+    "        with open(file_path, 'r') as f:\n",
+    "            code_dataset.append({'text': f.read()})\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b3da68e0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014606,
+     "end_time": "2024-07-26T11:06:38.321594",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.306988",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Convert list to Hugging Face `Dataset` object:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "80486f2e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.354030Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.353602Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.367394Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.366003Z"
+    },
+    "papermill": {
+     "duration": 0.032763,
+     "end_time": "2024-07-26T11:06:38.369886",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.337123",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Dataset({\n",
+      "    features: ['text'],\n",
+      "    num_rows: 10\n",
+      "})\n"
+     ]
+    }
+   ],
+   "source": [
+    "code_dataset = datasets.Dataset.from_list(code_dataset)\n",
+    "print(code_dataset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9ecb933f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01494,
+     "end_time": "2024-07-26T11:06:38.399828",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.384888",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Combine the python code dataset with the pretraining dataset you downloaded above:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "4829f81c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.431934Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.431496Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.442639Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.441382Z"
+    },
+    "papermill": {
+     "duration": 0.029961,
+     "end_time": "2024-07-26T11:06:38.445108",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.415147",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Dataset({\n",
+      "    features: ['text'],\n",
+      "    num_rows: 60010\n",
+      "})\n"
+     ]
+    }
+   ],
+   "source": [
+    "dataset = datasets.concatenate_datasets(\n",
+    "    [pretraining_dataset, code_dataset]\n",
+    ")\n",
+    "\n",
+    "print(dataset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "75ef9c46",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01495,
+     "end_time": "2024-07-26T11:06:38.475141",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.460191",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 2. Data cleaning\n",
+    "\n",
+    "In the cells below, you'll carry out the following cleaning steps:\n",
+    "1. Filter out samples that are too short\n",
+    "2. Remove repetitions within a single text example\n",
+    "3. Remove duplicated documents\n",
+    "4. Quality filter to remove non-English texts "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "392f073f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.507094Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.506706Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.514402Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.513291Z"
+    },
+    "papermill": {
+     "duration": 0.026537,
+     "end_time": "2024-07-26T11:06:38.516701",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.490164",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "60010"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset.num_rows"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "aa1815b9",
+   "metadata": {
+    "papermill": {
+     "duration": 0.014961,
+     "end_time": "2024-07-26T11:06:38.546808",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.531847",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Remove examples that are too short"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "4b01da15",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.643422Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.643001Z",
+     "iopub.status.idle": "2024-07-26T11:06:38.650557Z",
+     "shell.execute_reply": "2024-07-26T11:06:38.649278Z"
+    },
+    "papermill": {
+     "duration": 0.091276,
+     "end_time": "2024-07-26T11:06:38.653115",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.561839",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import heapq\n",
+    "\n",
+    "def paragraph_length_filter(x):\n",
+    "    \"\"\"Returns False if a page has too few lines or lines are too short.\"\"\"\n",
+    "    lines = x['text'].split('\\n')\n",
+    "    if (\n",
+    "        len(lines) <3\n",
+    "        or min(heapq.nlargest(3, [len(line) for line in lines])) < 3\n",
+    "    ):\n",
+    "        return False\n",
+    "    return True"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "8a35de07",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:38.686194Z",
+     "iopub.status.busy": "2024-07-26T11:06:38.685034Z",
+     "iopub.status.idle": "2024-07-26T11:06:40.448966Z",
+     "shell.execute_reply": "2024-07-26T11:06:40.447834Z"
+    },
+    "papermill": {
+     "duration": 1.783198,
+     "end_time": "2024-07-26T11:06:40.451580",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:38.668382",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "c54e9e3f2eb247928fa370394af77afe",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Filter:   0%|          | 0/60010 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "dataset = dataset.filter(\n",
+    "    paragraph_length_filter,\n",
+    "    load_from_cache_file=False\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "c93940ed",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:40.485500Z",
+     "iopub.status.busy": "2024-07-26T11:06:40.485043Z",
+     "iopub.status.idle": "2024-07-26T11:06:40.492944Z",
+     "shell.execute_reply": "2024-07-26T11:06:40.491732Z"
+    },
+    "papermill": {
+     "duration": 0.028602,
+     "end_time": "2024-07-26T11:06:40.495710",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:40.467108",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "52358"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset.num_rows"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ff9167f9",
+   "metadata": {
+    "papermill": {
+     "duration": 0.015505,
+     "end_time": "2024-07-26T11:06:40.527803",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:40.512298",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Remove repeated text within training examples\n",
+    "\n",
+    "Here you'll remove text repetitions within each example. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "5b531f01",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:40.560976Z",
+     "iopub.status.busy": "2024-07-26T11:06:40.560560Z",
+     "iopub.status.idle": "2024-07-26T11:06:40.567910Z",
+     "shell.execute_reply": "2024-07-26T11:06:40.566749Z"
+    },
+    "papermill": {
+     "duration": 0.026732,
+     "end_time": "2024-07-26T11:06:40.570415",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:40.543683",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def find_duplicates(paragraphs):\n",
+    "    \"\"\"\n",
+    "    Use this function to find the number of repetitions \n",
+    "    in the paragraphs.\n",
+    "    \"\"\"\n",
+    "    \n",
+    "    unique_x = set()\n",
+    "    duplicate_chars = 0\n",
+    "    duplicate_elements = 0\n",
+    "    for element in paragraphs:\n",
+    "        if element in unique_x:\n",
+    "            duplicate_chars += len(element)\n",
+    "            duplicate_elements +=1\n",
+    "        else:\n",
+    "            unique_x.add(element)\n",
+    "    return duplicate_elements, duplicate_chars"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "37d212aa",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:40.605587Z",
+     "iopub.status.busy": "2024-07-26T11:06:40.605148Z",
+     "iopub.status.idle": "2024-07-26T11:06:40.612985Z",
+     "shell.execute_reply": "2024-07-26T11:06:40.611809Z"
+    },
+    "papermill": {
+     "duration": 0.029235,
+     "end_time": "2024-07-26T11:06:40.615540",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:40.586305",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import re\n",
+    "\n",
+    "def paragraph_repetition_filter(x):\n",
+    "    \"\"\"\n",
+    "    Returns False iff a page has too many repetitions.\n",
+    "    \"\"\"\n",
+    "    text = x['text']\n",
+    "    paragraphs = re.compile(r\"\\n{2,}\").split(text.strip())                # Split by paragraphs (2 or more newlines)\n",
+    "    paragraphs_duplicates, char_duplicates = find_duplicates(paragraphs)  # Find number of duplicates in paragraphs\n",
+    "    if paragraphs_duplicates / len(paragraphs) > 0.3:\n",
+    "        return False\n",
+    "    if char_duplicates / len(text) > 0.2:\n",
+    "        return False\n",
+    "    return True"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "8d7977d6",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:40.652175Z",
+     "iopub.status.busy": "2024-07-26T11:06:40.651758Z",
+     "iopub.status.idle": "2024-07-26T11:06:46.521283Z",
+     "shell.execute_reply": "2024-07-26T11:06:46.519937Z"
+    },
+    "papermill": {
+     "duration": 5.891107,
+     "end_time": "2024-07-26T11:06:46.524146",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:40.633039",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "24b118a2d6894d77ad880077aa342278",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Filter:   0%|          | 0/52358 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "dataset = dataset.filter(\n",
+    "    paragraph_repetition_filter,\n",
+    "    load_from_cache_file=False\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "6f4f893e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:46.558801Z",
+     "iopub.status.busy": "2024-07-26T11:06:46.558357Z",
+     "iopub.status.idle": "2024-07-26T11:06:46.566694Z",
+     "shell.execute_reply": "2024-07-26T11:06:46.565491Z"
+    },
+    "papermill": {
+     "duration": 0.028648,
+     "end_time": "2024-07-26T11:06:46.569249",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:46.540601",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "52328"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset.num_rows"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ee780cce",
+   "metadata": {
+    "papermill": {
+     "duration": 0.016035,
+     "end_time": "2024-07-26T11:06:46.601503",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:46.585468",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Deduplication\n",
+    "\n",
+    "In this section, you'll remove duplicate examples from the entire dataset (in contrast to the previous step where you were just looking for repeated text in each example.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "5027873c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:46.637777Z",
+     "iopub.status.busy": "2024-07-26T11:06:46.637282Z",
+     "iopub.status.idle": "2024-07-26T11:06:48.331769Z",
+     "shell.execute_reply": "2024-07-26T11:06:48.330667Z"
+    },
+    "papermill": {
+     "duration": 1.715931,
+     "end_time": "2024-07-26T11:06:48.334730",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:46.618799",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "052b0c6c18f84750b7346b5a78e28d95",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Filter:   0%|          | 0/52328 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "def deduplication(ds):\n",
+    "    def dedup_func(x):\n",
+    "        \"\"\"Use this function to remove duplicate entries\"\"\"\n",
+    "        if x['text'] in unique_text:\n",
+    "            return False\n",
+    "        else:\n",
+    "            unique_text.add(x['text'])\n",
+    "            return True\n",
+    "\n",
+    "    unique_text = set()\n",
+    "\n",
+    "    ds = ds.filter(dedup_func, load_from_cache_file=False, num_proc=1)\n",
+    "    return ds\n",
+    "\n",
+    "dataset = deduplication(dataset)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "6f3303f5",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:48.370537Z",
+     "iopub.status.busy": "2024-07-26T11:06:48.370051Z",
+     "iopub.status.idle": "2024-07-26T11:06:48.377705Z",
+     "shell.execute_reply": "2024-07-26T11:06:48.376396Z"
+    },
+    "papermill": {
+     "duration": 0.029213,
+     "end_time": "2024-07-26T11:06:48.380497",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:48.351284",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "43599"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset.num_rows"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "20997a4a",
+   "metadata": {
+    "papermill": {
+     "duration": 0.016576,
+     "end_time": "2024-07-26T11:06:48.413402",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:48.396826",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Quality filter - Language\n",
+    "\n",
+    "Here you'll remove any text examples that are in a language other than English. The code here uses a language detection model called fastText. You can read about fastText [here](https://fasttext.cc/)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "0bd7debd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:06:48.448329Z",
+     "iopub.status.busy": "2024-07-26T11:06:48.447880Z",
+     "iopub.status.idle": "2024-07-26T11:07:06.091783Z",
+     "shell.execute_reply": "2024-07-26T11:07:06.090263Z"
+    },
+    "papermill": {
+     "duration": 17.664774,
+     "end_time": "2024-07-26T11:07:06.094749",
+     "exception": false,
+     "start_time": "2024-07-26T11:06:48.429975",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: fasttext in /opt/conda/lib/python3.10/site-packages (0.9.3)\r\n",
+      "Requirement already satisfied: pybind11>=2.2 in /opt/conda/lib/python3.10/site-packages (from fasttext) (2.13.1)\r\n",
+      "Requirement already satisfied: setuptools>=0.7.0 in /opt/conda/lib/python3.10/site-packages (from fasttext) (69.0.3)\r\n",
+      "Requirement already satisfied: numpy in /opt/conda/lib/python3.10/site-packages (from fasttext) (1.26.4)\r\n"
+     ]
+    }
+   ],
+   "source": [
+    "!pip install fasttext"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "fe1bda97",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:07:06.132591Z",
+     "iopub.status.busy": "2024-07-26T11:07:06.131719Z",
+     "iopub.status.idle": "2024-07-26T11:07:31.421086Z",
+     "shell.execute_reply": "2024-07-26T11:07:31.419902Z"
+    },
+    "papermill": {
+     "duration": 25.311546,
+     "end_time": "2024-07-26T11:07:31.423670",
+     "exception": false,
+     "start_time": "2024-07-26T11:07:06.112124",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "Parameter 'function'=<function english_language_filter.<locals>.is_english at 0x7b3378b03370> of the transform datasets.arrow_dataset.Dataset.filter@2.0.1 couldn't be hashed properly, a random hash was used instead. Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work. If you reuse this transform, the caching mechanism will consider it to be different from the previous calls and recompute everything. This warning is only showed once. Subsequent hashing failures won't be showed.\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "1a1dd5e0598f4daa93f66a9a01f3b8f0",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Filter:   0%|          | 0/43599 [00:00<?, ? examples/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import urllib\n",
+    "from fasttext.FastText import _FastText\n",
+    "\n",
+    "def english_language_filter(ds):\n",
+    "    # load language detection model\n",
+    "    model = _FastText('/kaggle/input/l2_language_model.bin/other/default/1/L2_language_model.bin')\n",
+    "    \n",
+    "    def is_english(x):\n",
+    "        # Predict language of the text and probability\n",
+    "        language, score = model.predict(x['text'].replace(\"\\n\", \"\"))\n",
+    "\n",
+    "        language = language[0].split(\"__\")[2]\n",
+    "        return score > 0.4 and language == \"en\" # change code here if building a model in another language\n",
+    "\n",
+    "    ds = ds.filter(is_english, load_from_cache_file=False, num_proc=1)\n",
+    "    return ds\n",
+    "\n",
+    "dataset = english_language_filter(dataset)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "48b647a5",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:07:31.460378Z",
+     "iopub.status.busy": "2024-07-26T11:07:31.459931Z",
+     "iopub.status.idle": "2024-07-26T11:07:31.466874Z",
+     "shell.execute_reply": "2024-07-26T11:07:31.465819Z"
+    },
+    "papermill": {
+     "duration": 0.028628,
+     "end_time": "2024-07-26T11:07:31.469833",
+     "exception": false,
+     "start_time": "2024-07-26T11:07:31.441205",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "40475"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dataset.num_rows"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5e51774d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.016835,
+     "end_time": "2024-07-26T11:07:31.503785",
+     "exception": false,
+     "start_time": "2024-07-26T11:07:31.486950",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## 3. Save the dataset to disk\n",
+    "\n",
+    "Read more about the parquet data format [here](https://parquet.apache.org/)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "0d262338",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-07-26T11:07:31.540286Z",
+     "iopub.status.busy": "2024-07-26T11:07:31.539240Z",
+     "iopub.status.idle": "2024-07-26T11:07:33.222950Z",
+     "shell.execute_reply": "2024-07-26T11:07:33.221815Z"
+    },
+    "papermill": {
+     "duration": 1.704668,
+     "end_time": "2024-07-26T11:07:33.225445",
+     "exception": false,
+     "start_time": "2024-07-26T11:07:31.520777",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "f673313ed2e748db8194a81ba4aa2fa8",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Creating parquet from Arrow format:   0%|          | 0/41 [00:00<?, ?ba/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "text/plain": [
+       "197141407"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "file_path = \"/kaggle/working/preprocessed_dataset.parquet\"\n",
+    "dataset.to_parquet(file_path)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "isSourceIdPinned": true,
+     "modelId": 94690,
+     "modelInstanceId": 69554,
+     "sourceId": 82803,
+     "sourceType": "modelInstanceVersion"
+    }
+   ],
+   "dockerImageVersionId": 30746,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 75.605496,
+   "end_time": "2024-07-26T11:07:34.070714",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-07-26T11:06:18.465218",
+   "version": "2.5.0"
+  },
+  "widgets": {
+   "application/vnd.jupyter.widget-state+json": {
+    "state": {
+     "01d7aaed6e914c03bbcb68e0dbd77aa5": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "049f08c3becd4a78b5411bc46f4b3602": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_b311493949144cb797ecf73192fe92d5",
+       "max": 52358.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_46554b8de74d4981bcb70420de52b121",
+       "value": 52358.0
+      }
+     },
+     "052b0c6c18f84750b7346b5a78e28d95": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_cc7197bcb4e74386988eef4606fde795",
+        "IPY_MODEL_6b26306caf4a42ea9cc0cb26a9f07cb3",
+        "IPY_MODEL_5de92d21d8654738a20c02edc98f1c6b"
+       ],
+       "layout": "IPY_MODEL_975ad5b586ae4b9a86b375cfd4719f56"
+      }
+     },
+     "06529e8f21d84be79be5d009b5ee245f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "0a2835fc26844891b21580a75a80ea8a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "0aabc913d66b469caf8e18cf18effb02": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "0b74778e74a247c993de23d53c0ac51a": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_bb006da50e104c8eb809c68df2dfebc3",
+       "placeholder": "​",
+       "style": "IPY_MODEL_4dcb69c81c384ab69ae2fef7a001e30d",
+       "value": " 43599/43599 [00:23&lt;00:00, 1859.53 examples/s]"
+      }
+     },
+     "0d8dc8009a574ba2a37ab4ffdb58558f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_4b2f49e1386641648a49bccf63fbea94",
+        "IPY_MODEL_d1ba94b8fa8942fabc1c087e0ae96d44",
+        "IPY_MODEL_174d900aaeaf471f8c47a8f24021c00f"
+       ],
+       "layout": "IPY_MODEL_a9e6adfcf8e64cddb553c4c6d4d04780"
+      }
+     },
+     "1356dd641e484f7eba4f1b1c401e6d6f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "1709f835d6fa4601b84f0f6973cc91c2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_61bb19f2ecf64c6ab25721cec89ad707",
+       "placeholder": "​",
+       "style": "IPY_MODEL_c64e88c7ca9044439f2a07c1086e5a44",
+       "value": " 60000/60000 [00:01&lt;00:00, 47479.38 examples/s]"
+      }
+     },
+     "174d900aaeaf471f8c47a8f24021c00f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_c7932d0ede1f4b639e850ca839e2e5fb",
+       "placeholder": "​",
+       "style": "IPY_MODEL_27745083a9fa45a0b737ac53d548ec2f",
+       "value": " 1.39k/1.39k [00:00&lt;00:00, 79.3kB/s]"
+      }
+     },
+     "1a1dd5e0598f4daa93f66a9a01f3b8f0": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_fee9e279adf64104a7f172b23bee73fa",
+        "IPY_MODEL_9ecdb1617aaa418ea347c0ec2b99ced3",
+        "IPY_MODEL_0b74778e74a247c993de23d53c0ac51a"
+       ],
+       "layout": "IPY_MODEL_6c799ff4cb924e35aac6ab386c4fc982"
+      }
+     },
+     "1b587c9e478f4eaca91b754a6011ad98": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "2053d496aeed43eab37930707a805525": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "21f523595e494c3eaa6c67770f594f02": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "24b118a2d6894d77ad880077aa342278": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_3904e6dd4d92406e946bb842fa29537e",
+        "IPY_MODEL_049f08c3becd4a78b5411bc46f4b3602",
+        "IPY_MODEL_b4793b3791d143ffaf98b548a61aecab"
+       ],
+       "layout": "IPY_MODEL_a252e277b6d04fc7954af52ed705be0a"
+      }
+     },
+     "25871daf406344c8992ceb4f0aaa54e8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_7c4a2ec737a443ca921f59cb1b96f663",
+       "placeholder": "​",
+       "style": "IPY_MODEL_9cf01a0038a7443aa3d7f7942e9ce73a",
+       "value": " 1/1 [00:00&lt;00:00, 101.62it/s]"
+      }
+     },
+     "25ad448182b5412ab14b52bc9fef3535": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "27160788c8c94c3ea769b7ec0aadf4dd": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "27745083a9fa45a0b737ac53d548ec2f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "305b3284b7f64f8d923a1287f921872e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "30aa5846f6bc457fa04f21ffb4a4b6f5": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "3335edce43ab423694d18ece1ad39caf": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_6dbe87e8542f4b48b396789161c0c8f4",
+       "placeholder": "​",
+       "style": "IPY_MODEL_40848d7fef9446bbb01651e4ec995952",
+       "value": " 60010/60010 [00:01&lt;00:00, 34644.37 examples/s]"
+      }
+     },
+     "336b0798ac854fe2b0991bf7e9488b42": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "36cf4718fb764393bf9faee587b855c8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "378a62a8621240719663dc7daf931a68": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_89bbd55a0dba48118c25230d7fd2b52f",
+       "max": 60010.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_6c78300456f54aab8281f1da98d20057",
+       "value": 60010.0
+      }
+     },
+     "3904e6dd4d92406e946bb842fa29537e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_79ee354c47b642848b98eece57631210",
+       "placeholder": "​",
+       "style": "IPY_MODEL_f9f3f7a67e154b8b8441293ca82c00da",
+       "value": "Filter: 100%"
+      }
+     },
+     "39305d783a824b95aa460bdbd50cee31": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_860d07e391a74b20815b42a0d9e96ccb",
+       "placeholder": "​",
+       "style": "IPY_MODEL_a1269c7c2b6f4aeeb71b20f3afc488ed",
+       "value": "Generating train split: 100%"
+      }
+     },
+     "40848d7fef9446bbb01651e4ec995952": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "410f2c4abd80407fac0aac6baeadb7d5": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "42efc5e8332b4f58a80d99eaffd3483e": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "44169549a8ef465e88b919451b980d70": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "46554b8de74d4981bcb70420de52b121": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "495d0790db1e49b0b9b45ccf9c0100d8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "4b2f49e1386641648a49bccf63fbea94": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_c742e09c516d4388abcb4ed6522e12f4",
+       "placeholder": "​",
+       "style": "IPY_MODEL_f2e0133707584f13a04e8324efeff27d",
+       "value": "Downloading readme: 100%"
+      }
+     },
+     "4bdc75d6e17b4d439b1a22adbeabcf49": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "4dcb69c81c384ab69ae2fef7a001e30d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "555e3855e71e49d99d961f1b211a2ec5": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "55ec455b1b564ca0ade17f928bfbe19e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_30aa5846f6bc457fa04f21ffb4a4b6f5",
+       "placeholder": "​",
+       "style": "IPY_MODEL_c2e6378e67bc4e759502d8c322fd9c1e",
+       "value": " 150M/150M [00:00&lt;00:00, 210MB/s]"
+      }
+     },
+     "59d292dda8d747148fd441c891c009e0": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "5b740bac14e947f1a353945af431c323": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "5cef42cdbe144da39a948673cc49a0ad": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "5de92d21d8654738a20c02edc98f1c6b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_c47cc310a5344b87800c6e2940ff21e6",
+       "placeholder": "​",
+       "style": "IPY_MODEL_678f97a5a71d496c9d32a26adb3a5f67",
+       "value": " 52328/52328 [00:01&lt;00:00, 29481.43 examples/s]"
+      }
+     },
+     "5e80b5421f6e437895d9f05804eb81e5": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_39305d783a824b95aa460bdbd50cee31",
+        "IPY_MODEL_9ba456e2cc6640598e0445b0bfac0c36",
+        "IPY_MODEL_89538529d4154ebdb5e971846d4ffb63"
+       ],
+       "layout": "IPY_MODEL_42efc5e8332b4f58a80d99eaffd3483e"
+      }
+     },
+     "5edc934ee1474391a197ad44dca1b642": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "61bb19f2ecf64c6ab25721cec89ad707": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "61c1530786db4b86b33265c549674d57": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "62e16390777840b79c30a9e5e3d5d594": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_06529e8f21d84be79be5d009b5ee245f",
+       "max": 1.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_fca60e0c97b44214ad7e431b1b9f3730",
+       "value": 1.0
+      }
+     },
+     "654b2a5445c8444b911c748e41b41546": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "66b9f5efbdd34d0aa0d1016607f7e06b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "678f97a5a71d496c9d32a26adb3a5f67": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "6b26306caf4a42ea9cc0cb26a9f07cb3": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_af90b97ab3b0461fa64b55a8d4b50ec5",
+       "max": 52328.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_83027f6afb2a440a8967dfc53fe4c6cf",
+       "value": 52328.0
+      }
+     },
+     "6c78300456f54aab8281f1da98d20057": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "6c799ff4cb924e35aac6ab386c4fc982": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "6dbe87e8542f4b48b396789161c0c8f4": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "6e4abc6fcac54438824e0bf22b50cb8a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "71d6e69975904497921b9aaf8da4f23b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "76691446ef4b4e308264f9fcb71ab7b6": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "787b3530c02944c783b4536b112bbfc9": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_aa0331f3be33440ebbd5343eeb763ccf",
+       "placeholder": "​",
+       "style": "IPY_MODEL_d925614d51534648a4b09b3c68a314df",
+       "value": "Generating train split: 100%"
+      }
+     },
+     "790a0ba966b041c88e914894824c1024": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_59d292dda8d747148fd441c891c009e0",
+       "max": 1.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_66b9f5efbdd34d0aa0d1016607f7e06b",
+       "value": 1.0
+      }
+     },
+     "79ee354c47b642848b98eece57631210": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "7c4a2ec737a443ca921f59cb1b96f663": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "7f2c18a12f7740049a550125681ccc97": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_f2aab4439c7d4097b436d4a544a0bd63",
+       "max": 41.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_495d0790db1e49b0b9b45ccf9c0100d8",
+       "value": 41.0
+      }
+     },
+     "816fb69e548f43b598e8a4a7607caa8d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "821040279fdf4f73806121c229a5a46f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "83027f6afb2a440a8967dfc53fe4c6cf": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "860d07e391a74b20815b42a0d9e96ccb": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "88b051c1b5ed41f785abc6268c56d0e0": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "89538529d4154ebdb5e971846d4ffb63": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_5edc934ee1474391a197ad44dca1b642",
+       "placeholder": "​",
+       "style": "IPY_MODEL_5b740bac14e947f1a353945af431c323",
+       "value": " 52002/52002 [00:00&lt;00:00, 81807.34 examples/s]"
+      }
+     },
+     "89bbd55a0dba48118c25230d7fd2b52f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "8b5981061c954ac5b9cd756cbeb3c61e": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "925a1eb4c820407baffce141bf4bea17": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "948bcda14b8341b2a5e5f4cb89f900dc": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "94bdcca239da4b8b8283f0560af9bcc3": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_336b0798ac854fe2b0991bf7e9488b42",
+       "placeholder": "​",
+       "style": "IPY_MODEL_948bcda14b8341b2a5e5f4cb89f900dc",
+       "value": "Computing checksums: 100%"
+      }
+     },
+     "975ad5b586ae4b9a86b375cfd4719f56": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "9890349a7b364dcf9d4ec15c6dde60e2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_787b3530c02944c783b4536b112bbfc9",
+        "IPY_MODEL_a251d403508d46b1bebd364e9170c2c2",
+        "IPY_MODEL_1709f835d6fa4601b84f0f6973cc91c2"
+       ],
+       "layout": "IPY_MODEL_c845ac83433e43af85bd7f08e6888e0d"
+      }
+     },
+     "99de5885df5149b8940c7e5b47d47393": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_0aabc913d66b469caf8e18cf18effb02",
+       "placeholder": "​",
+       "style": "IPY_MODEL_ed5288c0068e4781998a3df7cc8d6254",
+       "value": "Filter: 100%"
+      }
+     },
+     "9ba456e2cc6640598e0445b0bfac0c36": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_21f523595e494c3eaa6c67770f594f02",
+       "max": 52002.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_88b051c1b5ed41f785abc6268c56d0e0",
+       "value": 52002.0
+      }
+     },
+     "9c560c2ecc6b409fa86b999302e04a0a": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "9cf01a0038a7443aa3d7f7942e9ce73a": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "9ecdb1617aaa418ea347c0ec2b99ced3": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_6e4abc6fcac54438824e0bf22b50cb8a",
+       "max": 43599.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_aa570a606fda4b3da1fcabc71e2a6f35",
+       "value": 43599.0
+      }
+     },
+     "a1269c7c2b6f4aeeb71b20f3afc488ed": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "a251d403508d46b1bebd364e9170c2c2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_25ad448182b5412ab14b52bc9fef3535",
+       "max": 60000.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_2053d496aeed43eab37930707a805525",
+       "value": 60000.0
+      }
+     },
+     "a252e277b6d04fc7954af52ed705be0a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "a471d34c59924112ab93904c37c7cb02": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "a7e8d2d41c76491f8597b17b390a034a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "a9e6adfcf8e64cddb553c4c6d4d04780": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "aa0331f3be33440ebbd5343eeb763ccf": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "aa570a606fda4b3da1fcabc71e2a6f35": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "aec3f2256dba40fbb1c17b901169c9d7": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_94bdcca239da4b8b8283f0560af9bcc3",
+        "IPY_MODEL_62e16390777840b79c30a9e5e3d5d594",
+        "IPY_MODEL_25871daf406344c8992ceb4f0aaa54e8"
+       ],
+       "layout": "IPY_MODEL_c0d62f11d3d64d069d443d12cc8277b3"
+      }
+     },
+     "af90b97ab3b0461fa64b55a8d4b50ec5": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "b311493949144cb797ecf73192fe92d5": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "b3fd48780d5f4f68bc3bf0366463061b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_f4c4d1ee3ca54d08b9070a33d45e06d5",
+        "IPY_MODEL_790a0ba966b041c88e914894824c1024",
+        "IPY_MODEL_f642ce1bdf0848238530638ef7849e06"
+       ],
+       "layout": "IPY_MODEL_8b5981061c954ac5b9cd756cbeb3c61e"
+      }
+     },
+     "b4793b3791d143ffaf98b548a61aecab": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_1356dd641e484f7eba4f1b1c401e6d6f",
+       "placeholder": "​",
+       "style": "IPY_MODEL_01d7aaed6e914c03bbcb68e0dbd77aa5",
+       "value": " 52358/52358 [00:05&lt;00:00, 8170.13 examples/s]"
+      }
+     },
+     "bb006da50e104c8eb809c68df2dfebc3": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "bba3951138284af388b96547aa5c5058": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_410f2c4abd80407fac0aac6baeadb7d5",
+       "placeholder": "​",
+       "style": "IPY_MODEL_71d6e69975904497921b9aaf8da4f23b",
+       "value": "Creating parquet from Arrow format: 100%"
+      }
+     },
+     "c0d62f11d3d64d069d443d12cc8277b3": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c12e6a643de44a42a9378339837f41d0": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c18143d69e2d40bfba5871bbbba46e98": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_61c1530786db4b86b33265c549674d57",
+       "placeholder": "​",
+       "style": "IPY_MODEL_76691446ef4b4e308264f9fcb71ab7b6",
+       "value": " 41/41 [00:01&lt;00:00, 24.51ba/s]"
+      }
+     },
+     "c2e6378e67bc4e759502d8c322fd9c1e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "c47cc310a5344b87800c6e2940ff21e6": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c54e9e3f2eb247928fa370394af77afe": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_99de5885df5149b8940c7e5b47d47393",
+        "IPY_MODEL_378a62a8621240719663dc7daf931a68",
+        "IPY_MODEL_3335edce43ab423694d18ece1ad39caf"
+       ],
+       "layout": "IPY_MODEL_a471d34c59924112ab93904c37c7cb02"
+      }
+     },
+     "c64e88c7ca9044439f2a07c1086e5a44": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "c742e09c516d4388abcb4ed6522e12f4": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c7932d0ede1f4b639e850ca839e2e5fb": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c845ac83433e43af85bd7f08e6888e0d": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "c9b76a0ee82649eab3144c80e05e688c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_df3ac0fb62e74711b4a09e36951ac987",
+       "max": 43379276.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_816fb69e548f43b598e8a4a7607caa8d",
+       "value": 43379276.0
+      }
+     },
+     "cc7197bcb4e74386988eef4606fde795": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_ed8d1941c6b546f79ace1b5a6c2a2402",
+       "placeholder": "​",
+       "style": "IPY_MODEL_9c560c2ecc6b409fa86b999302e04a0a",
+       "value": "Filter: 100%"
+      }
+     },
+     "ce42dbc6f5eb4981b0956ca66b95391f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "d0008cf767ab44ce99bbfcba3e330a04": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_ce42dbc6f5eb4981b0956ca66b95391f",
+       "max": 150058575.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_27160788c8c94c3ea769b7ec0aadf4dd",
+       "value": 150058575.0
+      }
+     },
+     "d1ba94b8fa8942fabc1c087e0ae96d44": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_c12e6a643de44a42a9378339837f41d0",
+       "max": 1389.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_36cf4718fb764393bf9faee587b855c8",
+       "value": 1389.0
+      }
+     },
+     "d65aaa4bad9b452291b99bac3032dd4b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "d884ea56f4c94e609bf4227bed87f3d5": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_ecd92d6f822a46969cf4aa6f865a072d",
+        "IPY_MODEL_c9b76a0ee82649eab3144c80e05e688c",
+        "IPY_MODEL_f43fee60f18444828251af9058215fc4"
+       ],
+       "layout": "IPY_MODEL_925a1eb4c820407baffce141bf4bea17"
+      }
+     },
+     "d925614d51534648a4b09b3c68a314df": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "dbf0e58ca56c4cf1a6366bc7fc762756": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "dcc0e53b2de34371a715d233003b227d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_e12c9a49a26f467cb5adf2be0d9d556f",
+        "IPY_MODEL_d0008cf767ab44ce99bbfcba3e330a04",
+        "IPY_MODEL_55ec455b1b564ca0ade17f928bfbe19e"
+       ],
+       "layout": "IPY_MODEL_4bdc75d6e17b4d439b1a22adbeabcf49"
+      }
+     },
+     "df3ac0fb62e74711b4a09e36951ac987": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "e12c9a49a26f467cb5adf2be0d9d556f": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_44169549a8ef465e88b919451b980d70",
+       "placeholder": "​",
+       "style": "IPY_MODEL_1b587c9e478f4eaca91b754a6011ad98",
+       "value": "Downloading data: 100%"
+      }
+     },
+     "ecd92d6f822a46969cf4aa6f865a072d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_5cef42cdbe144da39a948673cc49a0ad",
+       "placeholder": "​",
+       "style": "IPY_MODEL_305b3284b7f64f8d923a1287f921872e",
+       "value": "Downloading data: 100%"
+      }
+     },
+     "ed5288c0068e4781998a3df7cc8d6254": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "ed8d1941c6b546f79ace1b5a6c2a2402": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f2aab4439c7d4097b436d4a544a0bd63": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f2e0133707584f13a04e8324efeff27d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "f43fee60f18444828251af9058215fc4": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_faed743a25af4366947b8db3fc860fa2",
+       "placeholder": "​",
+       "style": "IPY_MODEL_d65aaa4bad9b452291b99bac3032dd4b",
+       "value": " 43.4M/43.4M [00:02&lt;00:00, 23.5MB/s]"
+      }
+     },
+     "f4c4d1ee3ca54d08b9070a33d45e06d5": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_dbf0e58ca56c4cf1a6366bc7fc762756",
+       "placeholder": "​",
+       "style": "IPY_MODEL_654b2a5445c8444b911c748e41b41546",
+       "value": "Computing checksums: 100%"
+      }
+     },
+     "f642ce1bdf0848238530638ef7849e06": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_f862e67c2c9e4b3fb6e7abb8a1c2ad25",
+       "placeholder": "​",
+       "style": "IPY_MODEL_555e3855e71e49d99d961f1b211a2ec5",
+       "value": " 1/1 [00:00&lt;00:00, 94.92it/s]"
+      }
+     },
+     "f673313ed2e748db8194a81ba4aa2fa8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_bba3951138284af388b96547aa5c5058",
+        "IPY_MODEL_7f2c18a12f7740049a550125681ccc97",
+        "IPY_MODEL_c18143d69e2d40bfba5871bbbba46e98"
+       ],
+       "layout": "IPY_MODEL_a7e8d2d41c76491f8597b17b390a034a"
+      }
+     },
+     "f862e67c2c9e4b3fb6e7abb8a1c2ad25": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f9f3f7a67e154b8b8441293ca82c00da": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "DescriptionStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "DescriptionStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "description_width": ""
+      }
+     },
+     "faed743a25af4366947b8db3fc860fa2": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "1.2.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "1.2.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "overflow_x": null,
+       "overflow_y": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "fca60e0c97b44214ad7e431b1b9f3730": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "1.2.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "fee9e279adf64104a7f172b23bee73fa": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "1.5.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "1.5.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "1.5.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_tooltip": null,
+       "layout": "IPY_MODEL_0a2835fc26844891b21580a75a80ea8a",
+       "placeholder": "​",
+       "style": "IPY_MODEL_821040279fdf4f73806121c229a5a46f",
+       "value": "Filter: 100%"
+      }
+     }
+    },
+    "version_major": 2,
+    "version_minor": 0
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
